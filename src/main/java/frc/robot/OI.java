@@ -7,6 +7,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.RobotMap.*;
+
 /**
  * This class is the glue that binds the controls on the physical operator
  * interface to the commands and command groups that allow control of the robot.
@@ -39,4 +42,23 @@ public class OI {
   // Start the command when the button is released and let it run the command
   // until it is finished as determined by it's isFinished method.
   // button.whenReleased(new ExampleCommand());
+
+  //_______________________________________________________________________________________________________
+  private Joystick rightJoystick, leftJoystick, gamepad;
+
+  public OI() {
+    leftJoystick = new Joystick(DS_USB.LEFT_STICK);
+    rightJoystick = new Joystick(DS_USB.RIGHT_STICK);
+    gamepad = new Joystick(DS_USB.GAMEPAD);
+  }
+
+  //COMPLETE:
+  public int getX(int port) {
+    return 0;
+  }
+
+  //COMPLETE:
+  public int getY(int port) {
+    return 0;
+  }
 }
