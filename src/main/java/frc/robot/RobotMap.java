@@ -26,10 +26,10 @@ public class RobotMap {
   
   public static class CAN {
 		public static final int
-      DRIVETRAIN_ML = 1,
+      DRIVETRAIN_ML = 4,
 			DRIVETRAIN_MR = 2,
 			DRIVETRAIN_SL = 3,
-      DRIVETRAIN_SR = 4;
+      DRIVETRAIN_SR = 1;
       
       private CAN() {}
   }

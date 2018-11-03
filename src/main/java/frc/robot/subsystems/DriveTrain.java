@@ -1,98 +1,208 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.command.Subsystem;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.Robot;
-import frc.robot.RobotMap.*;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
+import frc.robot.commands.DriveWithJoysticks;
+import frc.util.TalonDrive;
+import frc.util.config.DriveTrainSettings;
+import frc.util.config.DriveTrainSettings.DriveTrainLayout;
+import frc.util.MercMath;
 
 /**
- * Add your docs here.
+ * Subsystem that encapsulates the drive train.
+ * This contains the {@link TalonDrive} needed to drive manually
+ * using the Talons.
  */
-public class DriveTrain extends Subsystem {
-  // Put methods for controlling this subsystem
-  // here. Call these from Commands.
+public class DriveTrain extends Subsystem implements PIDOutput {
+    //private Logger log = LogManager.getLogger(DriveTrain.class);
+    public static final int TIMEOUT_MS = 10;
+    public static final int SLOT_0 = 0;
+    public static final int PRIMARY_PID_LOOP = 0;
 
-  private TalonSRX rightFront, leftFront;
-  private VictorSPX rightBack, leftBack;
-  private DifferentialDrive drive;
+    public static final double MAX_SPEED = 1.0;
+    public static final double MIN_SPEED = .65;
 
-  public DriveTrain() {
-    leftFront = new TalonSRX(CAN.DRIVETRAIN_ML);
-    rightFront = new TalonSRX(CAN.DRIVETRAIN_MR);
-    leftFront.setInverted(true);
-    rightFront.setInverted(false);
-    leftBack = new VictorSPX(CAN.DRIVETRAIN_SL);
-    rightBack = new VictorSPX(CAN.DRIVETRAIN_SR);
-    leftBack.follow(leftFront);
-    rightBack.follow(rightFront);
-  }
+    private WPI_TalonSRX tMasterLeft, tMasterRight;
+    private BaseMotorController vFollowerLeft, vFollowerRight;
 
-  //COMPLETE: set the default command. (If you need help ask me)
-  @Override
-  public void initDefaultCommand() {
-    // e.g.: setDefaultCommand(new MySpecialCommand());
-    
-  }
+    private TalonDrive tDrive;
+    // private NavX navX;
+    private ADXRS450_Gyro gyroSPI;
 
-  /**
-   * Should arcadeDrive the robot using the throttle (y-axis of the left joystick) and yaw (x-axis of right joystick)
-   */
-  public void arcadeDrive(double throttle, double yaw) {
-    double leftPercent, rightPercent;
+	public static final int MAG_ENCODER_TICKS_PER_REVOLUTION = 4096;
+	public static final double GEAR_RATIO;
+    public static final double MAX_RPM;
+    public static final double WHEEL_DIAMETER_INCHES;
+    public static final DriveTrainSettings.DriveTrainLayout LAYOUT;
 
-		// Square inputs, but maintain their signs.
-		// This allows for more precise control at lower speeds,
-		// but permits full power.
-		throttle = Math.copySign(throttle * throttle, throttle);
-		yaw = Math.copySign(yaw * yaw, yaw);
-		
-		// Set left and right motor speeds.
-		if (throttle > 0) {
-			if (yaw > 0) {
-				rightPercent = throttle - yaw;
-				leftPercent = Math.max(throttle, yaw);
-			} else {
-				rightPercent = Math.max(throttle, -yaw);
-				leftPercent = throttle + yaw;
-			}
-		} else {
-			if (yaw > 0) {
-				rightPercent = -Math.max(-throttle, yaw);
-				leftPercent = throttle + yaw;
-			} else {
-				rightPercent = throttle - yaw;
-				leftPercent = -Math.max(-throttle, -yaw);
-			}
-		}
-		
-		// Apply speeds to motors.
-		// This assumes that the Talons have been setClawState properly.
-		leftFront.set(ControlMode.PercentOutput, leftPercent);
-		rightFront.set(ControlMode.PercentOutput, rightPercent);
-  }
+    static {
+        LAYOUT = DriveTrainLayout.LEGACY;// DriveTrainSettings.getControllerLayout();
+        GEAR_RATIO = DriveTrainSettings.getGearRatio();
+        MAX_RPM = DriveTrainSettings.getMaxRPM();
+        WHEEL_DIAMETER_INCHES = DriveTrainSettings.getWheelDiameter();
+	}
 
-  public void stopDriveTrain() {
-    Robot.driveTrain.setNeutralMode(NeutralMode.Brake);
-    leftFront.set(ControlMode.Velocity, 0);
-    rightFront.set(ControlMode.Velocity, 0);
-  }
+	/**
+	 * Creates the drivetrain, assuming that there are four talons.
+	 *
+	 * @param fl Front-left Talon ID
+	 * @param fr Front-right Talon ID
+	 * @param bl Back-left Talon ID
+	 * @param br Back-right Talon ID
+	 */
+	public DriveTrain(int fl, int fr, int bl, int br) {
+		//Use WPI_TalonSRX instead of TalonSRX to make sure it interacts properly with WPILib.
+		tMasterLeft = new WPI_TalonSRX(fl);
+		tMasterRight = new WPI_TalonSRX(fr);
 
-  public void setNeutralMode(NeutralMode nm) {
-    rightFront.setNeutralMode(nm);
-    leftFront.setNeutralMode(nm);
-    rightBack.setNeutralMode(nm);
-    leftBack.setNeutralMode(nm);
-  }
+        // At this point it's based on what the layout is
+        switch(LAYOUT) {
+            case LEGACY:
+                vFollowerLeft = new WPI_TalonSRX(bl);
+                vFollowerRight = new WPI_TalonSRX(br);
+                break;
+			case DEFAULT:
+			default:
+				vFollowerLeft = new WPI_VictorSPX(bl);
+				vFollowerRight = new WPI_VictorSPX(br);
+				break;
+        }
+
+        //Initialize the gyro that is currently on the robot. Comment out the initialization of the one not in use.
+        // navX = new NavX(SerialPort.Port.kUSB1);
+        gyroSPI = new ADXRS450_Gyro();
+
+        //Account for motor orientation.
+        tMasterLeft.setInverted(true);
+        vFollowerLeft.setInverted(true);
+        tMasterRight.setInverted(false);
+        vFollowerRight.setInverted(false);
+
+        setNeutralMode(NeutralMode.Brake);
+
+        //Account for encoder orientation.
+        tMasterLeft.setSensorPhase(true);
+        tMasterRight.setSensorPhase(true);
+
+        tDrive = new TalonDrive(tMasterLeft, tMasterRight);
+
+        // Set follower control on back talons. Use follow() instead of ControlMode.Follower so that Talons can follow Victors and vice versa.
+        vFollowerLeft.follow(tMasterLeft);
+        vFollowerRight.follow(tMasterRight);
+
+        // Set up feedback sensors
+        // Using CTRE_MagEncoder_Relative allows for relative ticks when encoder is zeroed out.
+        // This allows us to measure the distance from any given point to any ending point.
+        tMasterLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, PRIMARY_PID_LOOP, TIMEOUT_MS);
+        tMasterRight.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, PRIMARY_PID_LOOP, TIMEOUT_MS);
+
+        configVoltage(0, DriveTrainSettings.getMaxOutput());
+        setMaxOutput(DriveTrainSettings.getMaxOutput());
+    }
+
+    public void resetEncoders() {
+        tMasterLeft.getSensorCollection().setQuadraturePosition(0, TIMEOUT_MS);
+        tMasterRight.getSensorCollection().setQuadraturePosition(0, TIMEOUT_MS);
+    }
+
+    /**
+     * Stops the motors by zeroing the left and right Talons.
+     */
+    public void stop() {
+        tMasterLeft.set(ControlMode.Velocity, 0);
+        tMasterRight.set(ControlMode.Velocity, 0);
+    }
+
+    public void initDefaultCommand() {
+        setDefaultCommand(new DriveWithJoysticks(DriveWithJoysticks.DriveType.ARCADE));
+    }
+
+    /**
+     * Sets both of the front talons to have a forward output of nominalOutput and peakOutput with the reverse output setClawState to the negated outputs.
+     *
+     * @param nominalOutput The desired nominal voltage output of the left and right talons, both forward and reverse.
+     * @param peakOutput    The desired peak voltage output of the left and right talons, both forward and reverse
+     */
+    public void configVoltage(double nominalOutput, double peakOutput) {
+        tMasterLeft.configNominalOutputForward(nominalOutput, TIMEOUT_MS);
+        tMasterLeft.configNominalOutputReverse(-nominalOutput, TIMEOUT_MS);
+        tMasterLeft.configPeakOutputForward(peakOutput, TIMEOUT_MS);
+        tMasterLeft.configPeakOutputReverse(-peakOutput, TIMEOUT_MS);
+        tMasterRight.configNominalOutputForward(nominalOutput, TIMEOUT_MS);
+        tMasterRight.configNominalOutputReverse(-nominalOutput, TIMEOUT_MS);
+        tMasterRight.configPeakOutputForward(peakOutput, TIMEOUT_MS);
+        tMasterRight.configPeakOutputReverse(-peakOutput, TIMEOUT_MS);
+    }
+
+    /**
+     * Gets the gyro being used by the drive train.
+     *
+     * @return The gyro, either the NavX or Analog Gyro, currently in use on the robot
+     */
+    public Gyro getGyro() {
+       /* if (navX != null) {
+            return navX;
+        } else */
+        if (gyroSPI != null) {
+            return gyroSPI;
+        } else {
+            return null;
+        }
+    }
+
+    public int getLeftEncPositionInTicks() {
+        return tMasterLeft.getSelectedSensorPosition(PRIMARY_PID_LOOP);
+    }
+
+    public double getRightEncPositionInTicks() {
+        return tMasterRight.getSelectedSensorPosition(PRIMARY_PID_LOOP);
+    }
+
+    public double getLeftEncPositionInFeet() {
+        return MercMath.getEncPosition(getLeftEncPositionInTicks());
+    }
+
+    public double getRightEncPositionInFeet() {
+        return MercMath.getEncPosition(getRightEncPositionInTicks());
+    }
+
+    public TalonSRX getLeft() {
+        return tMasterLeft;
+    }
+
+    public TalonSRX getRight() {
+        return tMasterRight;
+    }
+
+    public TalonDrive getTalonDrive() {
+        return tDrive;
+    }
+
+    public double getFeedForward() {
+        return MercMath.calculateFeedForward(MAX_RPM);
+    }
+
+    public void pidWrite(double output) {
+        tDrive.tankDrive(output, -output);
+    }
+
+    public void setMaxOutput(double maxOutput) {
+        tDrive.setMaxOutput(maxOutput);
+    }
+
+    public void setNeutralMode(NeutralMode neutralMode) {
+        tMasterLeft.setNeutralMode(neutralMode);
+        tMasterRight.setNeutralMode(neutralMode);
+        vFollowerLeft.setNeutralMode(neutralMode);
+        vFollowerRight.setNeutralMode(neutralMode);
+    }
 }

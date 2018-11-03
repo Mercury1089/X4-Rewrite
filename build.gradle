@@ -14,10 +14,15 @@ deploy {
             // or from command line. If not found an exception will be thrown.
             // You can use getTeamOrDefault(team) instead of getTeamNumber if you
             // want to store a team number in this file.
-            team = getTeamNumber()
+            team = getTeamOrDefault(1089)
         }
     }
     artifacts {
+        fileCollectionArtifact('configCollectionArtifact') {
+            targets << 'roborio'
+            files = fileTree(dir: 'config')
+        }
+
         artifact('frcJava', edu.wpi.first.gradlerio.frc.FRCJavaArtifact) {
             targets << "roborio"
             // Debug can be overridden by command line, for use with VSCode

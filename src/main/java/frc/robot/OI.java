@@ -53,12 +53,28 @@ public class OI {
   }
 
   //COMPLETE:
-  public int getX(int port) {
-    return 0;
+  public double getX(int port) {
+    //return 0;
+    switch(port) {
+      case DS_USB.LEFT_STICK:
+        return leftJoystick.getX();
+      case DS_USB.RIGHT_STICK:
+        return rightJoystick.getX();
+      default:
+        return 0;
+    }
   }
 
   //COMPLETE:
-  public int getY(int port) {
-    return 0;
+  public double getY(int port) {
+    //return 0;
+    switch(port) {
+      case DS_USB.LEFT_STICK:
+        return leftJoystick.getY();
+      case DS_USB.RIGHT_STICK:
+        return rightJoystick.getY();
+      default:
+        return 0;
+    }
   }
 }
