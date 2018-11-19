@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     oi = new OI();
-    driveTrain = new DriveTrain(CAN.DRIVETRAIN_ML, CAN.DRIVETRAIN_MR, CAN.DRIVETRAIN_SL, CAN.DRIVETRAIN_SR);
+    driveTrain = new DriveTrain(CAN.DRIVETRAIN_LEADER_L, CAN.DRIVETRAIN_LEADER_R, CAN.DRIVETRAIN_FOLLOWER_L, CAN.DRIVETRAIN_FOLLOWER_R);
     // chooser.addObject("My Auto", new MyAutoCommand());
   }
 
@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-
+  
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
      * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand

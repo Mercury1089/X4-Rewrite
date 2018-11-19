@@ -4,13 +4,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 import frc.robot.RobotMap.DS_USB;
-import frc.robot.subsystems.DriveTrain;
-import frc.util.MercMath;
 import frc.util.TalonDrive;
-
-import javax.xml.bind.Element;
-import java.security.interfaces.ECKey;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Command that puts the drive train into a manual control mode.
@@ -18,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class DriveWithJoysticks extends Command {
 	private TalonDrive tDrive;
-//private static Logger log = LogManager.getLogger(DriveWithJoysticks.class);
-//private DelayableLogger everySecond = new DelayableLogger(log, 10, TimeUnit.SECONDS);
+	//private static Logger log = LogManager.getLogger(DriveWithJoysticks.class);
+	//private DelayableLogger everySecond = new DelayableLogger(log, 10, TimeUnit.SECONDS);
 	private DriveType driveType;
 
 	public enum DriveType {

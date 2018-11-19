@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
  */
 public class MercMath {
 	private final static char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+	private final static double CM_TO_INCHES = 2.54;
 
 	/**
 	 * Clamps a value between a minimum and maximum, inclusive.
@@ -21,12 +22,7 @@ public class MercMath {
 	 * 		   {@code min}, if {@code val} is >= {@code min}
 	 */
 	public static double clamp(double val, double min, double max) {
-		if (val <= min)
-			val = min;
-		else if (val >= max)
-			val = max;
-		
-		return val;
+		return val > min ? val < max ? val : max : min;
 	}
 
 	// TODO: Make this work
@@ -52,16 +48,19 @@ public class MercMath {
 	 */
 	public static double lerp(double percent, double a, double b) {
 		percent = clamp(percent, 0, 1);
-
-		return percent * b - percent * a + a;
+		return percent * (b - a) + a;
 	}
 
+	/*
+	 * Conversions for standard units
+	*/
+
 	public static double centimetersToInches(double val) {
-		return val / 2.54;
+		return val / CM_TO_INCHES;
 	}
 
 	public static double inchesToCentimeters(double val) {
-		return val * 0.393700787;
+		return val * CM_TO_INCHES;
 	}
 
 	public static double secondsToMinutes(double val) {
@@ -127,7 +126,6 @@ public class MercMath {
 	public static double ticksPerTenthToRevsPerMinute(double ticksPerTenthSecond) {
 		return ticksPerTenthSecond / Robot.driveTrain.MAG_ENCODER_TICKS_PER_REVOLUTION * 600;
 	}
-
 
 	public static double revsPerMinuteToTicksPerTenth(double revsPerMinute) {
         return revsPerMinute * Robot.driveTrain.MAG_ENCODER_TICKS_PER_REVOLUTION / 600;
