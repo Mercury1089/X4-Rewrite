@@ -15,6 +15,7 @@ import frc.robot.commands.DriveWithJoysticks;
 import frc.util.TalonDrive;
 import frc.util.config.DriveTrainSettings;
 import frc.util.config.DriveTrainSettings.DriveTrainLayout;
+import frc.util.Const;
 import frc.util.MercMath;
 
 /**
@@ -46,9 +47,9 @@ public class DriveTrain extends Subsystem implements PIDOutput {
 
     static {
         LAYOUT = DriveTrainLayout.LEGACY;// DriveTrainSettings.getControllerLayout();
-        GEAR_RATIO = DriveTrainSettings.getGearRatio();
-        MAX_RPM = DriveTrainSettings.getMaxRPM();
-        WHEEL_DIAMETER_INCHES = DriveTrainSettings.getWheelDiameter();
+        GEAR_RATIO = 4.0/3.0; //DriveTrainSettings.getGearRatio();
+        MAX_RPM = 700.63; //DriveTrainSettings.getMaxRPM();
+        WHEEL_DIAMETER_INCHES = 9.9; //DriveTrainSettings.getWheelDiameter();
 	}
 
 	/**
@@ -105,8 +106,8 @@ public class DriveTrain extends Subsystem implements PIDOutput {
         tMasterLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, PRIMARY_PID_LOOP, TIMEOUT_MS);
         tMasterRight.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, PRIMARY_PID_LOOP, TIMEOUT_MS);
 
-        configVoltage(0, DriveTrainSettings.getMaxOutput());
-        setMaxOutput(DriveTrainSettings.getMaxOutput());
+        configVoltage(0, Const.MAX_OUTPUT);
+        setMaxOutput(Const.MAX_OUTPUT);
     }
 
     public void resetEncoders() {
