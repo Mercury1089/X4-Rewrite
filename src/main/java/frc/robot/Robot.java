@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotMap.CAN;
-import frc.robot.subsystems.DriveTrain;
+import frc.robot.subsystems.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -24,6 +24,8 @@ import frc.robot.subsystems.DriveTrain;
  */
 public class Robot extends TimedRobot {
   public static DriveTrain driveTrain;
+  public static AirCompressor airCompressor;
+  public static Shooter shooter;
   public static OI oi;
 
   /**
@@ -34,6 +36,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     oi = new OI();
     driveTrain = new DriveTrain(CAN.DRIVETRAIN_ML, CAN.DRIVETRAIN_MR, CAN.DRIVETRAIN_SL, CAN.DRIVETRAIN_SR);
+    airCompressor = new AirCompressor();
+    shooter = new Shooter(); // TO_DO: shooter still needs to be written;
     // chooser.addObject("My Auto", new MyAutoCommand());
   }
 
