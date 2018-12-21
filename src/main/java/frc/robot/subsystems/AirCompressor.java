@@ -26,7 +26,21 @@ public class AirCompressor extends Subsystem {
         setDefaultCommand(new RunCompressor());
     }
 
-    public double getPressure() {
-         return (analogPressureSwitch.getVoltage() * 250.0) / 4.786 - 25.0;
+    //Command not currently in use
+    public double getRawPressure() {
+        return (analogPressureSwitch.getVoltage() * 250.0) / 4.786 - 25.0;
+    }
+
+    public boolean getPressureStatus() {
+        return pressure.get();
+    }
+
+    //Command not currently in use
+    public Relay getRelay() {
+        return relay;        
+    }
+    
+    public void setCompressor(Relay.Value val) {
+        relay.set(val);
     }
 }

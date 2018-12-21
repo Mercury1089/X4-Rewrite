@@ -7,6 +7,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Relay.Value;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
@@ -25,8 +26,12 @@ public class RunCompressor extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    if (Robot.airCompressor.getPressure() >= 0) {
-      
+    if (Robot.airCompressor.getPressureStatus()) {
+      //if tank is full, stop running compressor
+      Robot.airCompressor.setCompressor(Value.kOff);
+    } else {
+      //if tank is not full, run compressor
+      Robot.airCompressor.setCompressor(Value.kForward);
     }
   }
 
