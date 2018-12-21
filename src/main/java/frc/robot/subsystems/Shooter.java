@@ -1,33 +1,28 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.command.Subsystem;
-import edu.wpi.first.wpilibj.interfaces.Gyro;
-import frc.robot.commands.DriveWithJoysticks;
-import frc.util.TalonDrive;
-import frc.util.config.DriveTrainSettings;
-import frc.util.config.DriveTrainSettings.DriveTrainLayout;
-import frc.util.Const;
-import frc.util.MercMath;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public class Shooter extends Subsystem{
+    private DoubleSolenoid shooter, highElevator, lowElevator;
     
-    private Compressor comp;
-
+    //PCM ID's
+    private final int PCM_ID = 6, 
+                      SHOOTER_FORWARD = 7,
+                      SHOOTER_REVERSE = 0,
+                      HIGH_ELEVATOR_FORWARD = 1,
+                      HIGH_ELEVATOR_REVERSE = 2,
+                      LOW_ELEVATOR_FORWARD = 4,
+                      LOW_ELEVATOR_REVERSE = 3;
+                    
     public Shooter() {
-        comp = new Compressor(0); //to do: make not zero
-
+        shooter = new DoubleSolenoid(PCM_ID, SHOOTER_FORWARD, SHOOTER_REVERSE);
+        highElevator = new DoubleSolenoid(PCM_ID, HIGH_ELEVATOR_FORWARD, HIGH_ELEVATOR_REVERSE);
+        lowElevator = new DoubleSolenoid(PCM_ID, LOW_ELEVATOR_FORWARD, LOW_ELEVATOR_REVERSE);
     }
+
     public void initDefaultCommand() {
+        
     }
 }
 
