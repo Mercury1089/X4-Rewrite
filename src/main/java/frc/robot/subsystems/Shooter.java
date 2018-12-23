@@ -2,8 +2,9 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import frc.robot.commands.RaiseShooter;
 
-public class Shooter extends Subsystem{
+public class Shooter extends Subsystem {
     private DoubleSolenoid shooter, highElevator, lowElevator;
 
     public enum ElevatorPosition {
@@ -15,12 +16,12 @@ public class Shooter extends Subsystem{
     
     //PCM ID's
     private final int PCM_ID = 6, 
-                      SHOOTER_FORWARD = 7,
-                      SHOOTER_REVERSE = 0,
-                      HIGH_ELEVATOR_FORWARD = 1,
-                      HIGH_ELEVATOR_REVERSE = 2,
-                      LOW_ELEVATOR_FORWARD = 4,
-                      LOW_ELEVATOR_REVERSE = 3;
+        SHOOTER_FORWARD = 7,
+        SHOOTER_REVERSE = 0,
+        HIGH_ELEVATOR_FORWARD = 1,
+        HIGH_ELEVATOR_REVERSE = 2,
+        LOW_ELEVATOR_FORWARD = 4,
+        LOW_ELEVATOR_REVERSE = 3;
     //variable currently not in use
     private ElevatorPosition currPos = ElevatorPosition.LOW;
 
@@ -31,7 +32,7 @@ public class Shooter extends Subsystem{
     }
 
     public void initDefaultCommand() {
-
+        setDefaultCommand(new RaiseShooter(ElevatorPosition.DOWN));
     }
 
     public void setShooterHeight(ElevatorPosition pos) {
@@ -53,6 +54,6 @@ public class Shooter extends Subsystem{
                 highElevator.set(DoubleSolenoid.Value.kForward);
                 lowElevator.set(DoubleSolenoid.Value.kForward);
                 break;   
-        
+        }
     }
 }
